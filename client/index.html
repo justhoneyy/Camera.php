@@ -1,0 +1,28 @@
+<button id="upload" disabled>Upload Photo</button>
+<script>
+  let capturedImageData;
+  
+  captureButton.addEventListener('click', () => {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    capturedImageData = canvas.toDataURL('image/png');
+    uploadButton.disabled = false;
+  });
+
+  uploadButton.addEventListener('click', async () => {
+    if (!capturedImageData) return;
+    try {
+      await fetch('https://your-backend-url.com/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: capturedImageData })
+      });
+      alert('Image uploaded!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to upload.');
+    }
+  });
+</script>
+
