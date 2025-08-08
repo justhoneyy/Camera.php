@@ -1,7 +1,18 @@
-"dependencies": {
-  "cors": "^2.8.5",
-  "express": "^4.18.2",
-  "form-data": "^4.0.0",
-  "node-fetch": "^2.6.7",
-  "vite": "^5.0.0"
+{
+  "name": "camera-consent-video-telegram",
+  "version": "1.0.0",
+  "description": "Static site that requests front camera consent, captures a photo, and uploads snapshots to a Telegram bot via an Express server.",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "form-data": "^4.0.0",
+    "node-fetch": "^2.6.7",
+    "vite": "^5.0.0"
+  }
 }
