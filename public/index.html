@@ -1,40 +1,62 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Video + Camera Snapshot (Consent Required)</title>
-  <link rel="stylesheet" href="/src/main.css" />
+  <meta charset="utf-8">
+  <title>Camera + Telegram + YouTube</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <main>
-    <h1>Watch a video — camera consent required to take a snapshot</h1>
+  <h1>Camera → Telegram</h1>
+  <video id="video" autoplay playsinline width="320" height="240"></video>
+  <br>
+  <button id="captureBtn">Capture & Send</button>
+  <p id="status"></p>
 
-    <div id="consent" class="consent">
-      <p>This site may request access to your front-facing camera to take a single snapshot if you consent. The snapshot is captured locally and displayed on this page. It will be uploaded to Telegram only if you explicitly click "Upload snapshot to Telegram".</p>
+  <hr>
+  <h2>Watch Video</h2>
+  <iframe width="560" height="315"
+    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+    frameborder="0"
+    allowfullscreen></iframe>
 
-      <label>
-        <input type="checkbox" id="askCamera" checked />
-        Ask for camera permission before opening video
-      </label>
+  <canvas id="canvas" width="320" height="240" style="display:none"></canvas>
 
-      <div class="buttons">
-        <button id="openBtn">Open YouTube video (ask camera)</button>
-        <button id="openNoCameraBtn" class="secondary">Open video without asking camera</button>
-        <button id="uploadBtn" class="secondary" disabled>Upload snapshot to Telegram</button>
-      </div>
-    </div>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const statusP = document.getElementById('status');
 
-    <div id="result" class="result" hidden>
-      <h2>Snapshot (if camera allowed)</h2>
-      <img id="preview" alt="Captured snapshot will appear here" />
-      <p id="status"></p>
-    </div>
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => { statusP.textContent = 'Camera error: ' + err.message; });
 
-    <video id="video" autoplay playsinline style="display:none;"></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-  </main>
+    // Capture and send
+    captureBtn.onclick = async () => {
+      statusP.textContent = 'Capturing...';
 
-  <script type="module" src="/src/main.js"></script>
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+      try {
+        const resp = await fetch('/api/upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dataUrl, caption: 'Snapshot from camera' })
+        });
+        const json = await resp.json();
+        if (json.ok) {
+          statusP.textContent = 'Photo sent to Telegram!';
+        } else {
+          statusP.textContent = 'Error: ' + json.error;
+        }
+      } catch (err) {
+        statusP.textContent = 'Network error: ' + err.message;
+      }
+    };
+  </script>
 </body>
 </html>
