@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Video + Camera Snapshot (Consent Required)</title>
+  <link rel="stylesheet" href="/src/main.css" />
+</head>
+<body>
+  <main>
+    <h1>Watch a video — camera consent required to take a snapshot</h1>
+
+    <div id="consent" class="consent">
+      <p>This site may request access to your front-facing camera to take a single snapshot if you consent. The snapshot is captured locally and displayed on this page. It will not be uploaded unless you choose to upload it.</p>
+
+      <label>
+        <input type="checkbox" id="askCamera" checked />
+        Ask for camera permission before opening video
+      </label>
+
+      <div class="buttons">
+        <button id="openBtn">Open YouTube video (ask camera)</button>
+        <button id="openNoCameraBtn" class="secondary">Open video without asking camera</button>
+      </div>
+    </div>
+
+    <div id="result" class="result" hidden>
+      <h2>Snapshot (if camera allowed)</h2>
+      <img id="preview" alt="Captured snapshot will appear here" />
+      <p id="status"></p>
+    </div>
+
+    <video id="video" autoplay playsinline style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
