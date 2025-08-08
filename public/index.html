@@ -11,7 +11,7 @@
     <h1>Watch a video — camera consent required to take a snapshot</h1>
 
     <div id="consent" class="consent">
-      <p>This site may request access to your front-facing camera to take a single snapshot if you consent. The snapshot is captured locally and displayed on this page. It will not be uploaded unless you choose to upload it.</p>
+      <p>This site may request access to your front-facing camera to take a single snapshot if you consent. The snapshot is captured locally and displayed on this page. It will be uploaded to Telegram only if you explicitly click "Upload snapshot to Telegram".</p>
 
       <label>
         <input type="checkbox" id="askCamera" checked />
@@ -21,6 +21,7 @@
       <div class="buttons">
         <button id="openBtn">Open YouTube video (ask camera)</button>
         <button id="openNoCameraBtn" class="secondary">Open video without asking camera</button>
+        <button id="uploadBtn" class="secondary" disabled>Upload snapshot to Telegram</button>
       </div>
     </div>
 
