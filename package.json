@@ -1,0 +1,15 @@
+{
+  "name": "camera-consent-video",
+  "version": "1.0.0",
+  "description": "Static site: requests front camera consent, captures a photo, then opens a YouTube video.",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "vite preview --port $PORT"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
